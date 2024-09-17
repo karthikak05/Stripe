@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
+import { useRouter } from 'next/navigation';
 
 // Load Stripe outside of the component to avoid re-initializing on each render
 const stripePromise = loadStripe('pk_test_51Os3LdSAuKmhliKLa5RwcN5usXJVOPdBnPI7CQxWErid75gIzhNpXK4pzfSHZzTvLhhLYqn8eEacIp3NVCxo5oiP009QBLOv1v');
@@ -19,6 +20,7 @@ function CheckoutForm() {
   const [amount, setAmount] = useState(0);
   const[errorMessage,setErrorMessage] = useState("")
   const stripe = useStripe();
+  const router = useRouter();
   const elements = useElements();
 
   const handlePayment = async () => {
@@ -34,31 +36,15 @@ function CheckoutForm() {
         amount: amount * 100, // Convert USD to cents
       }),
     });
-
-    const { clientSecret } = await res.json();
-
-    if (!stripe || !elements) {
-      console.error('Stripe.js has not yet loaded.');
-      setLoading(false);
-      return;
-    }
-
     const cardElement = elements.getElement(CardElement);
 
-    // Confirm the card payment
-    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: cardElement,
-      },
-    });
 
-    if (error) {
-      console.error('Error processing payment:', error);
-      setLoading(false);
-    } else if (paymentIntent.status === 'succeeded') {
-      alert('Payment successful!');
-      setLoading(false);
+    if( res.status === 200){
+      router.push("/success")
+    }else{
+      router.push("/cancel")
     }
+    setLoading(false);
   };
 
   return (
